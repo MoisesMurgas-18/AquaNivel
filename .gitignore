@@ -1,0 +1,26 @@
+
+# Entorno virtual de Python
+.venv/
+venv/
+
+# Archivos temporales de Python
+__pycache__/
+*.pyc
+
+# Contraseñas y configuraciones privadas
+.env
+.env.*
+!.env.example
+
+# Datos generados
+datos/
+*.csv
+*.log
+
+# Archivos locales
+.vscode/
+*.zip
+
+# Pruebas independientes del profesor
+conexion_profesor.py
+prueba_profesor.py

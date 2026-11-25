@@ -1,0 +1,116 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#081725">
+  <meta name="description" content="Panel de monitoreo de AquaNivel, proyecto IoT con ESP32, sensores y MQTT.">
+  <title>AquaNivel — Centro de monitoreo</title>
+  <link rel="stylesheet" href="./styles.css">
+  <link rel="stylesheet" href="./refinamientos.css">
+</head>
+<body>
+  <svg class="svg-sprite" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+    <symbol id="i-drop" viewBox="0 0 24 24"><path d="M12 3C9.5 6.8 5.5 11 5.5 15a6.5 6.5 0 0 0 13 0C18.5 11 14.5 6.8 12 3Z"/><path d="M9 17a3.2 3.2 0 0 0 3 2"/></symbol>
+    <symbol id="i-grid" viewBox="0 0 24 24"><rect x="3.5" y="3.5" width="7" height="7" rx="1.7"/><rect x="13.5" y="3.5" width="7" height="7" rx="1.7"/><rect x="3.5" y="13.5" width="7" height="7" rx="1.7"/><rect x="13.5" y="13.5" width="7" height="7" rx="1.7"/></symbol>
+    <symbol id="i-activity" viewBox="0 0 24 24"><path d="M3 12h4l3-7 4 14 3-7h4"/></symbol>
+    <symbol id="i-control" viewBox="0 0 24 24"><path d="M4 7h16M4 17h16M8 4v6M16 14v6"/></symbol>
+    <symbol id="i-settings" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 2v3m0 14v3M2 12h3m14 0h3M4.9 4.9 7 7m10 10 2.1 2.1M19.1 4.9 17 7M7 17l-2.1 2.1"/></symbol>
+    <symbol id="i-wifi" viewBox="0 0 24 24"><path d="M3 9a14 14 0 0 1 18 0M6.5 12.5a9 9 0 0 1 11 0M10 16a4 4 0 0 1 4 0"/><circle cx="12" cy="19" r=".7" fill="currentColor" stroke="none"/></symbol>
+    <symbol id="i-shield" viewBox="0 0 24 24"><path d="M12 2 20 6v6c0 5-3.2 8.1-8 10-4.8-1.9-8-5-8-10V6l8-4Z"/><path d="m8.5 12 2.5 2.5 4.5-5"/></symbol>
+    <symbol id="i-bell" viewBox="0 0 24 24"><path d="M18 8a6 6 0 0 0-12 0v6l-2 3h16l-2-3V8ZM10 21h4"/></symbol>
+    <symbol id="i-arrow" viewBox="0 0 24 24"><path d="m7 17 10-10M8 7h9v9"/></symbol>
+    <symbol id="i-refresh" viewBox="0 0 24 24"><path d="M20 10a8 8 0 1 0 1 5M20 4v6h-6"/></symbol>
+    <symbol id="i-close" viewBox="0 0 24 24"><path d="M5 5 19 19M19 5 5 19"/></symbol>
+  </svg>
+
+  <div class="app-shell">
+    <aside class="sidebar">
+      <div class="brand"><div class="brand-logo"><svg><use href="#i-drop"/></svg></div><div><strong>Aqua<span>Nivel</span></strong><small>SMART WATER SYSTEM</small></div></div>
+      <div class="nav-section-label">PLATAFORMA</div>
+      <nav class="side-nav" aria-label="Navegación principal">
+        <a class="nav-item active" href="#inicio"><svg><use href="#i-grid"/></svg><span>Panel general</span><span class="nav-rect"></span></a>
+        <a class="nav-item" href="#sensores"><svg><use href="#i-activity"/></svg><span>Sensores</span></a>
+        <a class="nav-item" href="#control"><svg><use href="#i-control"/></svg><span>Control</span></a>
+        <a class="nav-item" href="#telemetria"><svg><use href="#i-activity"/></svg><span>Telemetría</span></a>
+        <button class="nav-item" type="button" id="open-settings"><svg><use href="#i-settings"/></svg><span>Configuración</span></button>
+      </nav>
+      <div class="sidebar-spacer"></div>
+      <div class="side-system-card"><div class="side-live"><span class="side-live-dot"></span><span id="sidebar-mode">MODO DEMOSTRACIÓN</span></div><p>Monitoreo inteligente del nivel de agua.</p><div class="side-system-footer"><span>ESP32 · MicroPython</span><svg><use href="#i-arrow"/></svg></div></div>
+      <div class="sidebar-bottom"><span class="avatar">DS8</span><div><strong>Proyecto AquaNivel</strong><small>Avance 3 · IoT</small></div></div>
+    </aside>
+
+    <main class="main-content" id="inicio">
+      <header class="topbar"><div class="crumb">Plataforma <span>/</span> <strong>Panel general</strong></div><div class="top-right"><div class="top-clock" id="local-clock">--:--:--</div><span class="vertical-rule"></span><button type="button" class="icon-circle" id="quick-settings" aria-label="Configurar MQTT"><svg><use href="#i-settings"/></svg></button></div></header>
+
+      <section class="page-heading"><div><div class="eyebrow"><span class="eyebrow-line"></span>CENTRO DE MONITOREO · AQ01</div><h1>El agua, bajo control<span class="headline-dot">.</span></h1><p>Visualiza tu tanque y detecta cambios en tiempo real.</p></div><div class="heading-actions"><span class="connection-pill demo" id="connection-pill"><span class="pill-led"></span><span id="connection-text">Modo demostración</span></span><button type="button" class="btn btn-outline" id="toggle-mode"><svg><use href="#i-wifi"/></svg>Conectar MQTT</button></div></section>
+
+      <section class="metrics" aria-label="Indicadores principales">
+        <article class="metric-card"><div class="metric-top"><span>NIVEL DEL TANQUE</span><div class="metric-icon cyan"><svg><use href="#i-drop"/></svg></div></div><div class="metric-main"><strong id="stat-level">64<span>%</span></strong><span class="tiny-badge" id="stat-class">MEDIO</span></div><div class="metric-bottom"><span class="tiny-spark" id="level-trend">↗</span><span id="level-caption">Capacidad ocupada</span></div></article>
+        <article class="metric-card"><div class="metric-top"><span>DISTANCIA AL AGUA</span><div class="metric-icon blue"><svg><use href="#i-activity"/></svg></div></div><div class="metric-main"><strong id="stat-distance">72<span>cm</span></strong></div><div class="metric-bottom"><span class="tiny-rect"></span><span>Medición del HC-SR04</span></div></article>
+        <article class="metric-card"><div class="metric-top"><span>SENSOR EXTERIOR</span><div class="metric-icon purple"><svg><use href="#i-drop"/></svg></div></div><div class="metric-main"><strong id="stat-external">8<span>%</span></strong><span class="tiny-badge quiet" id="stat-external-status">SECO</span></div><div class="metric-bottom"><span class="tiny-rect"></span><span>Agua fuera del tanque</span></div></article>
+        <article class="metric-card"><div class="metric-top"><span>LED DE BOMBA</span><div class="metric-icon orange"><svg><use href="#i-control"/></svg></div></div><div class="metric-main"><strong id="stat-pump">OFF</strong><span class="tiny-badge quiet" id="stat-pump-mode">AUTO</span></div><div class="metric-bottom"><span class="tiny-rect"></span><span>Bomba representada con LED</span></div></article>
+      </section>
+
+      <div class="main-grid">
+        <section class="card tank-panel" aria-labelledby="tank-title">
+          <div class="card-head"><div><span class="section-kicker">MONITOREO VISUAL</span><h2 id="tank-title">Estado del tanque</h2></div><div class="live-chip" id="reading-chip"><span></span>ANIMACIÓN ACTIVA</div></div>
+          <div class="tank-layout">
+            <div class="tank-illustration" role="img" aria-label="Tanque transparente con agua animada según el nivel actual">
+              <div class="tank-back-halo"></div><div class="pipe pipe-top"></div><div class="pipe pipe-spout"></div>
+              <div class="tank-visual"><div class="tank-glass"><div class="tank-inner-grid"></div><div class="water-fill" id="water-fill"><div class="wave-back"></div><div class="wave-front"></div><div class="water-shine"></div><span class="bubble b1"></span><span class="bubble b2"></span><span class="bubble b3"></span><span class="bubble b4"></span></div><div class="glass-shine"></div><div class="glass-streak"></div></div><div class="tank-rim"></div><div class="tank-base"></div></div>
+              <div class="water-scale"><span>100%</span><i></i><span>75%</span><i></i><span>50%</span><i></i><span>25%</span><i></i><span>0%</span></div>
+              <div class="tank-floating-label"><small>NIVEL ACTUAL</small><strong id="tank-percent">64<span>%</span></strong><div class="float-status"><i id="float-dot"></i><span id="tank-class">Nivel medio</span></div></div>
+            </div>
+            <div class="tank-data"><div class="tank-data-heading">LECTURA DEL SENSOR</div><div class="tank-data-row"><span>Capacidad utilizada</span><strong id="data-level">64.0%</strong></div><div class="progress-track"><div class="progress-bar" id="data-progress"></div></div><div class="tank-data-row"><span>Espacio disponible</span><strong id="data-free">36.0%</strong></div><div class="tank-data-row"><span>Distancia medida</span><strong id="data-distance">72.0 cm</strong></div><div class="tank-data-divider"></div><div class="tank-footnote"><span class="small-green-dot"></span><span id="measurement-note">El nivel se actualiza automáticamente en la demostración.</span></div></div>
+          </div>
+        </section>
+
+        <div class="right-stack" id="sensores">
+          <section class="card status-panel"><div class="card-head"><div><span class="section-kicker">SEGURIDAD DEL SISTEMA</span><h2>Diagnóstico</h2></div><div class="status-head-icon"><svg><use href="#i-shield"/></svg></div></div><div class="diagnosis-status ok" id="diagnosis-box"><span class="diagnosis-icon" id="diagnosis-symbol">✓</span><div><strong id="diagnosis-title">Todo en orden</strong><p id="diagnosis-subtitle">No se observan señales de fuga.</p></div></div><div class="diagnosis-details"><div class="diagnosis-row"><div><span class="detail-dot teal"></span><span>Agua externa</span></div><strong id="detail-water">No detectada</strong></div><div class="diagnosis-row"><div><span class="detail-dot blue"></span><span>Caída de nivel</span></div><strong id="detail-drop">0.0%</strong></div><div class="diagnosis-row"><div><span class="detail-dot amber"></span><span>Bloqueo por fuga</span></div><strong id="detail-lock">Inactivo</strong></div><div class="diagnosis-row"><div><span class="detail-dot purple"></span><span>Switch GPIO32</span></div><strong id="detail-switch">1 · Abierto</strong></div></div></section>
+          <section class="card control-panel" id="control"><div class="card-head"><div><span class="section-kicker">CONTROL REMOTO</span><h2>Gestión de bomba</h2></div><div class="status-head-icon"><svg><use href="#i-control"/></svg></div></div><div class="pump-info"><span class="pump-light" id="pump-light"></span><div><strong id="pump-state-title">LED de bomba apagado</strong><p id="pump-state-sub">Modo automático activado</p></div></div><div class="segmented" role="group" aria-label="Modo de bomba"><button class="seg active" id="mode-auto" type="button">● &nbsp; Automático</button><button class="seg" id="mode-off" type="button">○ &nbsp; Apagar</button></div><button class="reset-btn" id="reset-leak" type="button"><svg><use href="#i-refresh"/></svg>Rearmar alarma de fuga</button><p class="control-hint" id="control-hint">Los controles reales se habilitan al conectar MQTT.</p></section>
+        </div>
+      </div>
+
+      <div class="lower-grid"><section class="card chart-card"><div class="card-head"><div><span class="section-kicker">EVOLUCIÓN DEL NIVEL</span><h2>Comportamiento del agua</h2></div><span class="chart-meta" id="chart-meta">Últimas lecturas · demostración</span></div><div class="chart-wrap"><div class="chart-axis"><span>100%</span><span>75%</span><span>50%</span><span>25%</span><span>0%</span></div><svg class="line-chart" id="line-chart" viewBox="0 0 700 178" preserveAspectRatio="none" aria-label="Historial reciente del porcentaje de agua"><defs><linearGradient id="chart-area-gradient" x1="0" x2="0" y1="0" y2="1"><stop offset="0%" stop-color="#45dddb" stop-opacity=".25"/><stop offset="100%" stop-color="#45dddb" stop-opacity="0"/></linearGradient></defs><path class="chart-grid" d="M0 4H700 M0 46H700 M0 88H700 M0 130H700 M0 174H700"/><path id="chart-area" fill="url(#chart-area-gradient)" d=""/><path id="chart-line" stroke="#51ded6" fill="none" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" d=""/><circle id="chart-last" r="5" fill="#d2ffff" stroke="#43dbd8" stroke-width="3" cx="0" cy="0"/></svg></div><div class="chart-footer"><span id="chart-start">- hace unos instantes</span><span>Tiempo <span class="chart-dot"></span> Nivel de agua</span><span id="chart-end">Ahora</span></div></section>
+      <section class="card events-card"><div class="card-head"><div><span class="section-kicker">ACTIVIDAD RECIENTE</span><h2>Registro de eventos</h2></div><span class="events-badge">EN MEMORIA</span></div><ul class="events-list" id="events-list" aria-live="polite"></ul><div class="events-foot"><svg><use href="#i-activity"/></svg> Los eventos se muestran mientras el panel está abierto; aún no hay base de datos.</div></section></div>
+
+      <section class="card telemetry-panel" id="telemetria" aria-labelledby="telemetry-title">
+        <div class="card-head">
+          <div><span class="section-kicker">CONTROL DE COMUNICACIÓN</span><h2 id="telemetry-title">Telemetría y parámetros del ESP32</h2></div>
+          <span class="telemetry-status running" id="telemetry-status" aria-live="polite">● Enviando lecturas</span>
+        </div>
+        <div class="telemetry-grid">
+          <div class="telemetry-block">
+            <div class="telemetry-block-head"><strong>Envío de lecturas</strong><small>Intervalo de Wokwi: 5 segundos</small></div>
+            <p>Puedes detener temporalmente las lecturas sin desconectar el ESP32 del broker MQTT.</p>
+            <div class="segmented telemetry-buttons" role="group" aria-label="Controlar el envío de lecturas">
+              <button class="seg active" id="telemetry-resume" type="button">▶ Reanudar</button>
+              <button class="seg" id="telemetry-pause" type="button">Ⅱ Pausar</button>
+            </div>
+            <small class="telemetry-help" id="telemetry-help">Las órdenes llegan directamente a Wokwi y se confirman por MQTT.</small>
+          </div>
+          <div class="telemetry-block">
+            <div class="telemetry-block-head"><strong>Umbral de nivel crítico</strong><small id="critical-current">Actual: 20%</small></div>
+            <p>Define el porcentaje a partir del cual el ESP32 considera que el tanque está en nivel crítico.</p>
+            <div class="threshold-row">
+              <input type="range" id="critical-range" min="5" max="35" step="1" value="20" aria-label="Porcentaje del umbral crítico">
+              <strong id="critical-selected">20%</strong>
+            </div>
+            <div class="threshold-scale"><span>5%</span><span>35%</span></div>
+            <button type="button" class="btn btn-outline threshold-apply" id="critical-apply">Aplicar umbral</button>
+          </div>
+        </div>
+      </section>
+
+      <footer class="footer"><span>© AquaNivel · Proyecto IoT DS8</span><span>Diseñado para monitorear, prevenir y actuar con tiempo.</span></footer>
+    </main>
+  </div>
+
+  <div class="demo-controls" id="demo-controls"><div class="demo-icon"><svg><use href="#i-activity"/></svg></div><div class="demo-label"><strong>Simulador de nivel</strong><span>Prueba la animación sin Wokwi</span></div><input type="range" id="demo-slider" min="0" max="100" step="1" value="64" aria-label="Nivel simulado de agua"><strong id="demo-value">64%</strong><button type="button" id="demo-fuga" class="btn-demo-fuga">Probar fuga</button><button type="button" id="demo-auto" class="btn-demo-auto">↺ Automático</button></div>
+
+  <div class="modal-backdrop hidden" id="settings-modal" role="presentation"><section class="settings-dialog" role="dialog" aria-modal="true" aria-labelledby="settings-title"><div class="settings-top"><div><span class="section-kicker">CONFIGURACIÓN DE CONEXIÓN</span><h2 id="settings-title">Conectar con Wokwi</h2></div><button type="button" class="modal-close" id="close-settings" aria-label="Cerrar"><svg><use href="#i-close"/></svg></button></div><p id="connection-info">Usamos los mismos temas MQTT que el ESP32 del Avance 3. Solo debes iniciar Wokwi y conectar este panel.</p><label>Servidor MQTT por WebSocket (seguro)<input id="broker-url" type="url" value="wss://broker.hivemq.com:8884/mqtt" spellcheck="false" autocomplete="off"></label><div class="setting-duo"><label>Grupo<input id="group-input" type="text" value="1gs133" spellcheck="false" maxlength="40"></label><label>Dispositivo<input id="device-input" type="text" value="aq01" spellcheck="false" maxlength="40"></label></div><div class="topic-preview"><small>TEMA DE TELEMETRÍA</small><code id="topic-preview">utp/ds8/1gs133/aquanivel/aq01/telemetria</code></div><p class="settings-warning">El broker público es para demostraciones: no envíes contraseñas ni datos privados. En el navegador se usa WebSocket (WSS), aunque el ESP32 se conecte por el puerto 1883.</p><div class="settings-buttons"><button type="button" class="btn btn-outline" id="cancel-settings">Cancelar</button><button type="button" class="btn btn-primary" id="connect-settings">Conectar ahora <svg><use href="#i-arrow"/></svg></button></div></section></div>
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  <script defer src="./app.js"></script>
+</body>
+</html>

@@ -1,0 +1,227 @@
+/* Ajustes visuales del panel AquaNivel.
+   Mantengo la gráfica dentro de su tarjeta y las olas tranquilas. */
+
+/* El SVG es flexible: nunca debe salirse cuando cambia el tamaño de ventana. */
+.chart-card {
+  min-width: 0;
+  overflow: hidden;
+}
+
+.chart-card .card-head {
+  min-width: 0;
+  flex-wrap: wrap;
+}
+
+.chart-wrap {
+  width: 100%;
+  min-width: 0;
+  height: 172px;
+  overflow: hidden;
+}
+
+.chart-axis {
+  width: 38px;
+}
+
+.line-chart {
+  display: block;
+  flex: 1 1 0;
+  width: 0;
+  min-width: 0;
+  max-width: 100%;
+  overflow: hidden;
+}
+
+.chart-footer {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  align-items: center;
+  gap: 7px;
+  margin-left: 51px;
+}
+
+.chart-footer > span:last-child {
+  text-align: right;
+}
+
+/* El nivel lo muevo desde JavaScript para que no salte entre lecturas.
+   Las ondas son suaves y nunca necesitan girar el tanque. */
+.water-fill {
+  transition: none;
+}
+
+.wave-back,
+.wave-front {
+  top: -10px;
+  left: -42%;
+  width: 188%;
+  height: 22px;
+  border-radius: 50% 50% 48% 48% / 42% 42% 58% 58%;
+  animation: water-wave-calm 7s ease-in-out infinite alternate;
+  will-change: transform;
+}
+
+.wave-front {
+  top: -7px;
+  height: 17px;
+  opacity: .52;
+  animation-duration: 9s;
+  animation-direction: alternate-reverse;
+}
+
+@keyframes water-wave-calm {
+  from { transform: translateX(-2%); }
+  to { transform: translateX(2%); }
+}
+
+/* Nuevo espacio para enviar las órdenes que ya entiende el ESP32. */
+.telemetry-panel {
+  margin-top: 17px;
+  padding: 25px;
+  scroll-margin-top: 15px;
+}
+
+.telemetry-status {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 30px;
+  padding: 9px 13px;
+  font-size: 11px;
+  font-weight: 800;
+  white-space: nowrap;
+  color: #72e4d5;
+  background: #164139;
+  border: 1px solid #2d766b;
+}
+
+.telemetry-status.paused {
+  color: #ffcb88;
+  background: #3b3228;
+  border-color: #786041;
+}
+
+.telemetry-status.waiting {
+  color: #a3bfc9;
+  background: #233845;
+  border-color: #3c5b68;
+}
+
+.telemetry-grid {
+  margin-top: 19px;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 17px;
+}
+
+.telemetry-block {
+  min-width: 0;
+  padding: 19px 21px;
+  border: 1px solid #264b5a;
+  background: linear-gradient(130deg, #133142, #0e2635);
+  border-radius: 13px;
+}
+
+.telemetry-block-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 13px;
+  flex-wrap: wrap;
+}
+
+.telemetry-block-head strong {
+  font: 600 16px 'Outfit', sans-serif;
+  color: #e8f5f9;
+}
+
+.telemetry-block-head small {
+  font-size: 11px;
+  color: #7ed6d1;
+}
+
+.telemetry-block p {
+  color: #9cbbc8;
+  font-size: 12px;
+  line-height: 1.65;
+  min-height: 39px;
+  margin: 9px 0 15px;
+}
+
+.telemetry-buttons .seg {
+  min-height: 39px;
+  font-size: 12px;
+}
+
+.telemetry-help {
+  display: block;
+  color: #7d9da9;
+  font-size: 11px;
+  line-height: 1.5;
+  margin-top: 12px;
+}
+
+.threshold-row {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.threshold-row input[type='range'] {
+  flex: 1;
+  min-width: 0;
+  accent-color: #54ddd3;
+}
+
+.threshold-row strong {
+  min-width: 49px;
+  color: #68e5d9;
+  font: 700 19px 'Outfit', sans-serif;
+  text-align: right;
+}
+
+.threshold-scale {
+  display: flex;
+  justify-content: space-between;
+  color: #6d98a9;
+  font-size: 10px;
+  margin: 5px 61px 0 1px;
+}
+
+.threshold-apply {
+  margin-top: 13px;
+  width: 100%;
+  justify-content: center;
+}
+
+@media (max-width: 840px) {
+  .telemetry-grid { grid-template-columns: 1fr; }
+  .telemetry-block p { min-height: 0; }
+}
+
+@media (max-width: 580px) {
+  .telemetry-panel { padding: 19px; }
+  .telemetry-block { padding: 17px 15px; }
+}
+
+@media (max-width: 580px) {
+  .chart-footer {
+    grid-template-columns: 1fr auto;
+  }
+
+  .chart-footer > span:nth-child(2) {
+    grid-column: 1 / -1;
+    grid-row: 2;
+    justify-self: center;
+    margin-top: 3px;
+  }
+
+  .chart-footer > span:last-child {
+    grid-column: 2;
+    grid-row: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .wave-back,
+  .wave-front { animation: none; }
+}
